@@ -1,0 +1,34 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers R / RStudio
+.Rhistory
+.RData
+.Rproj.user/
+.Ruserdata
+.Rapp.history
+.Rproj
+
+# Fichiers temporaires
+*.tmp
+*.log
+*.aux
+*.out
+*.toc
+*.bak
+*.swp
+
+# Fichiers de données volumineux
+data/*.csv
+data/*.xlsx
+data/*.zip
+
+# Cache d'analyse
+cache/
+__pycache__/
+
+# Résultats générés
+*.pdf
+*.png
+figures/
