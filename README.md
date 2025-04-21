@@ -17,6 +17,7 @@ Ce projet vise à appliquer les méthodes statistiques vues en cours à l'ISTY p
 - etc
 
 ## Auteurs
-Projet réalisé dans le cadre du cours de Big Data – IATIC 4 
+Projet réalisé dans le cadre du cours de Big Data – IATIC 4 - ISTY 2024-2025 
+Par 
 Steve Landry KOUOKAM NONO
 
