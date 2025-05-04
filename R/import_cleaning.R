@@ -9,11 +9,21 @@ library(janitor)    # pour clean_names()
 
 #  Chargement des données (.xlsx)
 elections <- read_excel("data/resultats-par-niveau-cirlg-t1-france-entiere.xlsx")
-insee <- read_excel("data/indic-stat-circonscriptions-legislatives-2022.xlsx", skip = 5)
+insee <- read_excel("data/indic-stat-circonscriptions-legislatives-2022.xlsx", skip = 5) 
 
 #  Nettoyage des noms de colonnes
 elections <- clean_names(elections)
 insee <- clean_names(insee)
+
+# Sélection des colonnes à convertir (exclure les identifiants)
+cols_to_numeric <- setdiff(names(insee), c(
+  "code_de_la_circonscription_legislative_numero_de_departement_suivi_du_numero_de_circonscription",
+  "nom_de_la_circonscription_legislative_nom_du_departement_suivi_du_numero_de_circonscription"
+))
+
+# Conversion sécurisée en numeric (suppression éventuelle des % ou virgules si besoin)
+insee <- insee %>%
+  mutate(across(all_of(cols_to_numeric), ~ as.numeric(gsub(",", ".", gsub("%", "", .)))))
 
 # Aperçu des colonnes disponibles
 glimpse(elections)
