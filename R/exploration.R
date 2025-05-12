@@ -5,8 +5,12 @@ library(tidyverse)
 library(janitor)
 
 # Chargement des données fusionnées
-data <- read_csv("data/base_fusion.csv") %>%
+data <- read_csv("../data/base_fusion.csv") %>%
   clean_names()
+
+# Conversion des colonnes logiques (lgl) en numériques quand possible
+data <- data %>%
+  mutate(across(where(is.logical), ~ as.numeric(.)))
 
 # Aperçu global
 glimpse(data)
