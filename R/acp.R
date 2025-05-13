@@ -77,3 +77,63 @@ write_csv(as.data.frame(res_acp$ind$coord), "../results/acp_ind_coord.csv")
 write_csv(as.data.frame(res_acp$var$coord), "../results/acp_var_coord.csv")
 
 message("ACP terminée et résultats exportés dans le dossier results/.")
+
+# Graphique : Variance expliquée
+png(filename = "../results/variance_expliquee.png", width = 800, height = 600)
+barplot(res_acp$eig[, 2],
+        names.arg = paste0("Dim", 1:nrow(res_acp$eig)),
+        main = "Pourcentage de variance expliquée par dimension",
+        col = "steelblue")
+dev.off()
+
+# Projections : individus
+png(filename = "../results/individus_acp.png", width = 800, height = 600)
+fviz_pca_ind(res_acp,
+             col.ind = "cos2",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+dev.off()
+
+# Projections : variables
+png(filename = "../results/variables_acp.png", width = 800, height = 600)
+fviz_pca_var(res_acp,
+             col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+dev.off()
+
+# Contributions : Dim 1
+png(filename = "../results/top_variables_dim1.png", width = 800, height = 600)
+fviz_contrib(res_acp, choice = "var", axes = 1, top = 10)
+dev.off()
+
+# Contributions : Dim 2
+png(filename = "../results/top_variables_dim2.png", width = 800, height = 600)
+fviz_contrib(res_acp, choice = "var", axes = 2, top = 10)
+dev.off()
+
+saveRDS(res_acp, file = "../results/acp_resultats.rds")
+
+
+# Variance expliquée
+png("../results/variance_expliquee.png", width = 800, height = 600)
+print(fviz_eig(res_acp, addlabels = TRUE, ylim = c(0, 50)))
+dev.off()
+
+# Cercle des corrélations (variables)
+png("../results/cercle_variables.png", width = 800, height = 600)
+print(fviz_pca_var(res_acp, col.var = "contrib", gradient.cols = c("blue", "yellow", "red"), repel = TRUE))
+dev.off()
+
+# Projection des individus
+png("../results/individus_pca.png", width = 800, height = 600)
+print(fviz_pca_ind(res_acp, col.ind = "cos2", gradient.cols = c("white", "blue", "red"), repel = TRUE))
+dev.off()
+
+# Biplot (individus + variables)
+png("../results/biplot_pca.png", width = 800, height = 600)
+print(fviz_pca_biplot(res_acp, repel = TRUE, col.var = "contrib", col.ind = "cos2"))
+dev.off()
+
+
+
