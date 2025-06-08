@@ -7,11 +7,18 @@ library(dplyr)
 library(ggplot2)
 library(readr)
 library(tidyr)
+library(corrplot)     # pour les cartes de chaleur de corrélation
+library(ggcorrplot)   # alternative ggplot2 pour les corrélations
 
 
 #  Chargement des données fusionnées
 message("Chargement du fichier base_fusion.csv...")
 base_fusion <- read_csv("../data/base_fusion.csv", show_col_types = FALSE)
+
+# Conversion des colonnes logiques en numériques lorsqu'elles
+# correspondent à des indicateurs codés 0/1
+base_fusion <- base_fusion %>%
+  mutate(across(where(is.logical), as.numeric))
 
 # Préparation des données
 #  Sélection des variables numériques pertinentes pour l'ACP
@@ -29,6 +36,34 @@ cat("Nombre de lignes après suppression des NA :", nrow(base_numeric), "\n")
 # Vérification rapide et Résumé statistique
 message("Résumé statistique des données utilisées :")
 print(summary(base_numeric))
+
+# -----------------------
+# Visualisations préliminaires
+# -----------------------
+
+# Sélection de 11 variables numériques pour les histogrammes
+hist_vars <- names(base_numeric)[1:min(11, ncol(base_numeric))]
+for (var in hist_vars) {
+  p <- ggplot(base_numeric, aes(x = .data[[var]])) +
+    geom_histogram(fill = "steelblue", color = "white", bins = 30) +
+    labs(title = paste("Histogramme de", var), x = var, y = "Fréquence")
+  ggsave(filename = paste0("../results/hist_", var, ".png"), plot = p,
+         width = 6, height = 4)
+}
+
+# Sélection de 6 variables numériques pour les boxplots par département
+if ("code_du_departement" %in% names(base_fusion)) {
+  box_vars <- names(base_numeric)[1:min(6, ncol(base_numeric))]
+  for (var in box_vars) {
+    p <- ggplot(base_fusion, aes(x = factor(code_du_departement), y = .data[[var]])) +
+      geom_boxplot() +
+      labs(title = paste("Distribution de", var, "par département"),
+           x = "Département", y = var) +
+      theme(axis.text.x = element_text(angle = 90, hjust = 1))
+    ggsave(filename = paste0("../results/boxplot_", var, ".png"), plot = p,
+           width = 7, height = 4)
+  }
+}
 
 
 #  Réalisation de l'ACP
@@ -134,6 +169,43 @@ dev.off()
 png("../results/biplot_pca.png", width = 800, height = 600)
 print(fviz_pca_biplot(res_acp, repel = TRUE, col.var = "contrib", col.ind = "cos2"))
 dev.off()
+
+# -----------------------
+# Analyses de corrélation
+# -----------------------
+
+cor_matrix <- cor(base_numeric, use = "pairwise.complete.obs")
+
+# Carte de chaleur générale
+png("../results/corrplot.png", width = 900, height = 800)
+corrplot(cor_matrix, method = "color", type = "upper", tl.cex = 0.6)
+dev.off()
+
+# Version ggcorrplot
+png("../results/ggcorrplot.png", width = 900, height = 800)
+print(ggcorrplot(cor_matrix, hc.order = TRUE, type = "upper"))
+dev.off()
+
+# Corrélations des 20 variables les plus liées entre elles
+cor_pairs <- as.data.frame(as.table(cor_matrix))
+cor_pairs <- cor_pairs[cor_pairs$Var1 != cor_pairs$Var2, ]
+cor_pairs$abs_cor <- abs(cor_pairs$Freq)
+top_vars <- unique(c(cor_pairs$Var1[order(-cor_pairs$abs_cor)][1:20],
+                     cor_pairs$Var2[order(-cor_pairs$abs_cor)][1:20]))
+top_cor <- cor_matrix[top_vars, top_vars]
+
+png("../results/corrplot_top20.png", width = 900, height = 800)
+corrplot(top_cor, method = "color", type = "upper", tl.cex = 0.7)
+dev.off()
+
+# -----------------------
+# Notes et limites rencontrées
+# -----------------------
+# Certaines colonnes importées possédaient un type incorrect (logique)
+# ou contenaient beaucoup de valeurs manquantes. Elles sont converties
+# et filtrées ci-dessus avant calcul des corrélations et de l'ACP.
+# Les noms de colonnes très longs issus des fichiers sources peuvent
+# également complexifier la lisibilité des graphiques.
 
 
 
